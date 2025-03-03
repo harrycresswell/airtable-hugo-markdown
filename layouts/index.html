@@ -1,0 +1,78 @@
+{{/*  Initilise an empty dictonary to store data  */}}
+{{ $data := dict }}
+{{/* Get remote data. */}}
+{{ $path := "data/nicesites.json" }}
+{{ with resources.Get $path }}
+  {{ with . | transform.Unmarshal }}
+    {{ $data = . }}
+  {{ end }}
+{{ else }}
+  {{ errorf "Unable to get global resource %q" $path }}
+{{ end }}
+
+
+{{ range $data }}
+    {{/* Validate and store the data */}}
+    {{ $object := . }}
+
+    {{/* Render data in the browser for debugging  */}}
+    {{/*  <pre>{{ debug.Dump $object }}</pre>  */}}
+
+    {{/* Grab tags and format lowercase for Obsidian */}}
+    {{ $tags := .tags | lower }}
+
+    {{/*  Optionally see shape of data in the browser  */}}
+    {{/*  <pre>{{ debug.Dump $tags }}</pre>  */}}
+
+    {{/*  Convert comma-seperated tags string into a slice  */}}
+    {{ $tagsSlice := split $tags "," }}
+    
+    {{/*  Optionally see shape of data in the browser  */}}
+    {{/*  <pre>{{ debug.Dump $tagsArray }}</pre>  */}}
+
+    {{/*  Append a new tag to the tags array  */}}
+    {{ $newTags := $tagsSlice | append "references" }}
+    {{/*  Alternatively...  */}}
+    {{/*  Append a slice of more than one new tag to the tags array  */}}
+    {{/*  {{ $newTags := $tagsSlice | append (slice "websites" "references") }}  */}}
+
+    {{/*  Optionally see shape of data in the browser  */}}
+    {{/*  <pre>{{ debug.Dump $newTags }}</pre>  */}}
+
+    {{/*  Merge newTags back into orginal object  */}}
+    {{ $updateObject := merge $object (dict "tags" $newTags) }}
+    
+
+    {{/*  Render data in the browser for debugging  */}}
+    {{/*  <pre>{{ debug.Dump $updateObject }}</pre>  */}}
+
+    {{/*  Set lang you want data as, e.g. yaml, toml, json. See https://discourse.gohugo.io/t/convert-between-toml-yaml-and-json-in-shortcode/47134  */}}
+    {{ $lang := "yaml" }}
+
+    {{/*  Transform data to the specified format  */}}
+    {{ $transformData := $updateObject | transform.Remarshal $lang }}
+
+    {{/*  Render data in the browser for debugging  */}}
+    {{/*  <pre>{{ debug.Dump $transformData }}</pre>  */}}
+
+    {{/*  Add dashes for YAML delimiters  */}}
+    {{/*  ---\n adds the opening YAML delimiter followed by a newline (\n).  */}}
+    {{/*  %s acts as a placeholder for the value of $transformData  */}}
+    {{/*  \n--- adds another newline followed by the closing YAML delimiter.  */}}
+    {{/*  Note: if $lang is set to TOML, change `---` to `+++`.  */}}
+    {{ $yamlContent := printf "---\n%s\n---" $transformData }}
+
+     {{/*  Render data in the browser for debugging  */}}
+     <pre>{{ debug.Dump $yamlContent }}</pre>
+
+    {{/*  Generate the target path and filename  */}}
+    {{ with .name }}
+        {{ $filename := printf "nicesites/%s.md" (urlize .) }}
+        {{/*  Create resource from the string  */}}
+        {{ $resource := resources.FromString $filename $yamlContent }}
+        {{ $file := $resource.RelPermalink }}
+    {{ else }}
+        {{/*  Log an error or handle missing .Name appropriately  */}}
+        {{ errorf "Missing .Name for data: %v" $object }}
+    {{ end }}
+{{ end }}

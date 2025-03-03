@@ -1,0 +1,4 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'Airtable to Markdown'
+disableKinds = ["taxonomy", "term", "sitemap", "RSS"]
