@@ -17,7 +17,7 @@ You will need [Hugo](https://gohugo.io/) version 0.126.0 or higher installed loc
 Clone this repository:
 
 ```
-git clone https://github.com/harrycresswell/content-adapters.git
+git clone https://github.com/harrycresswell/airtable-hugo-markdown
 ```
 
 ## Local development
